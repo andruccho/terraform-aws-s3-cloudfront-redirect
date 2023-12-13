@@ -1,11 +1,15 @@
-resource "aws_s3_bucket_policy" "main" {
-  bucket = aws_s3_bucket.main.id
-  policy = data.aws_iam_policy_document.bucket_policy.json
-}
 
 resource "aws_s3_bucket_acl" "main" {
+  bucket     = aws_s3_bucket.main.id
+  acl        = "private"
+  depends_on = [aws_s3_bucket_ownership_controls.s3_bucket_acl_ownership]
+}
+
+resource "aws_s3_bucket_ownership_controls" "s3_bucket_acl_ownership" {
   bucket = aws_s3_bucket.main.id
-  acl    = "private"
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
 }
 
 
@@ -31,34 +35,3 @@ resource "aws_s3_bucket" "main" {
     },
   )
 }
-
-data "aws_iam_policy_document" "bucket_policy" {
-  provider = aws.main
-
-  statement {
-    sid = "AllowCFOriginAccess"
-
-    actions = [
-      "s3:GetObject",
-    ]
-
-    resources = [
-      "arn:aws:s3:::${var.fqdn}/*",
-    ]
-
-    condition {
-      test     = "StringEquals"
-      variable = "aws:UserAgent"
-
-      values = [
-        var.refer_secret,
-      ]
-    }
-
-    principals {
-      type        = "*"
-      identifiers = ["*"]
-    }
-  }
-}
-
