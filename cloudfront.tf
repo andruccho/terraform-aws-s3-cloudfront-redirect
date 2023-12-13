@@ -1,7 +1,3 @@
-# resource "aws_cloudfront_origin_access_identity" "main" {
-#   provider = "aws.cloudfront"
-#   comment = "cf-origin-${var.fqdn}"
-# }
 
 resource "aws_cloudfront_distribution" "main" {
   provider     = aws.cloudfront
@@ -27,19 +23,6 @@ resource "aws_cloudfront_distribution" "main" {
       # not sure what this does...
       # "If the origin is an Amazon S3 bucket, CloudFront always uses TLSv1.2."
       origin_ssl_protocols = ["TLSv1.2"]
-    }
-
-    # s3_origin_config is not compatible with S3 website hosting, if this
-    # is used, /news/index.html will not resolve as /news/.
-    # https://www.reddit.com/r/aws/comments/6o8f89/can_you_force_cloudfront_only_access_while_using/
-    # s3_origin_config {
-    #   origin_access_identity = "${aws_cloudfront_origin_access_identity.main.cloudfront_access_identity_path}"
-    # }
-    # Instead, we use a secret to authenticate CF requests to S3 policy.
-    # Not the best, but...
-    custom_header {
-      name  = "User-Agent"
-      value = var.refer_secret
     }
   }
 
